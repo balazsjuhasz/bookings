@@ -21,3 +21,5 @@
 go.work
 
 database.yml
+
+/bookings
