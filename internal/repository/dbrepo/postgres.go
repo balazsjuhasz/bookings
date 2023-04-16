@@ -20,9 +20,17 @@ func (m *postgresDBRepo) InsertReservation(res models.Reservation) (int, error) 
 
 	var newID int
 
-	stmt := `insert into reservations (first_name, last_name, email, phone,
-		start_date, end_date, room_id, created_at, updated_at)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning id`
+	stmt := `
+		insert into
+			reservations (
+				first_name, last_name, email, phone,
+				start_date, end_date, room_id, created_at, updated_at
+			)
+		values 
+			($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		returning
+			id
+	`
 
 	err := m.DB.QueryRowContext(ctx, stmt,
 		res.FirstName,
@@ -48,9 +56,15 @@ func (m *postgresDBRepo) InsertRoomRestriction(r models.RoomRestriction) error {
 	ctx, canel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer canel()
 
-	stmt := `insert into room_restrictions (start_date, end_date, room_id, reservation_id,
-		created_at, updated_at, restriction_id)
-		values ($1, $2, $3, $4, $5, $6, $7)`
+	stmt := `
+		insert into
+			room_restrictions (
+				start_date, end_date, room_id, reservation_id,
+				created_at, updated_at, restriction_id
+			)
+		values
+			($1, $2, $3, $4, $5, $6, $7)
+	`
 
 	_, err := m.DB.ExecContext(ctx, stmt,
 		r.StartDate,
@@ -147,9 +161,12 @@ func (m *postgresDBRepo) GetRoomByID(id int) (models.Room, error) {
 	var room models.Room
 
 	query := `
-		select id, room_name, created_at, updated_at
-		from rooms
-		where id = $1
+		select
+			id, room_name, created_at, updated_at
+		from
+			rooms
+		where
+			id = $1
 	`
 
 	row := m.DB.QueryRowContext(ctx, query, id)
@@ -174,9 +191,12 @@ func (m *postgresDBRepo) GetUserByID(id int) (models.User, error) {
 	var u models.User
 
 	query := `
-		select id, first_name, last_name, email, password, access_level, created_at, updated_at
-		from users
-		where id = $1
+		select
+			id, first_name, last_name, email, password, access_level, created_at, updated_at
+		from
+			users
+		where
+			id = $1
 	`
 
 	row := m.DB.QueryRowContext(ctx, query, id)
@@ -203,7 +223,14 @@ func (m *postgresDBRepo) UpdateUser(u models.User) error {
 	defer canel()
 
 	query := `
-		update users set firt_name = $1, last_name = $2, email = $3, access_level = $4, updated_at = $5
+		update
+			users
+		set
+			firt_name = $1,
+			last_name = $2,
+			email = $3,
+			access_level = $4,
+			updated_at = $5
 	`
 
 	_, err := m.DB.ExecContext(ctx, query,
@@ -230,9 +257,12 @@ func (m *postgresDBRepo) Authenticate(email, testPassword string) (int, string, 
 	var hashedPassword string
 
 	query := `
-		select id, password
-		from users
-		where email = $1
+		select
+			id, password
+		from
+			users
+		where
+			email = $1
 	`
 
 	row := m.DB.QueryRowContext(ctx, query, email)
@@ -407,4 +437,80 @@ func (m *postgresDBRepo) GetReservationByID(id int) (models.Reservation, error) 
 	}
 
 	return res, nil
+}
+
+// UpdateReservation updates a reservation in the database
+func (m *postgresDBRepo) UpdateReservation(r models.Reservation) error {
+	ctx, canel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer canel()
+
+	query := `
+		update
+			reservations
+		set
+			first_name = $1,
+			last_name = $2,
+			email = $3,
+			phone = $4,
+			updated_at = $5
+		where
+			id = $6
+	`
+
+	_, err := m.DB.ExecContext(ctx, query,
+		r.FirstName,
+		r.LastName,
+		r.Email,
+		r.Phone,
+		time.Now(),
+		r.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteReservation deletes one reservation by id
+func (m *postgresDBRepo) DeleteReservation(id int) error {
+	ctx, canel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer canel()
+
+	query := `
+		delete from
+			reservations
+		where
+			id = $1
+	`
+
+	_, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateProcessedForReservation updates processed for a reservation by id
+func (m *postgresDBRepo) UpdateProcessedForReservation(id, processed int) error {
+	ctx, canel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer canel()
+
+	query := `
+		update
+			reservations
+		set
+			processed = $1
+		where
+			id = $2
+	`
+
+	_, err := m.DB.ExecContext(ctx, query, processed, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

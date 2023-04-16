@@ -55,12 +55,6 @@ function Prompt() {
           c.willOpen();
         }
       },
-      preConfirm: () => {
-        return [
-          document.getElementById("start").value,
-          document.getElementById("end").value,
-        ];
-      },
       didOpen: () => {
         if (c.didOpen !== undefined) {
           c.didOpen();
