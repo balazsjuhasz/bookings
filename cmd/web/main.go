@@ -66,7 +66,7 @@ func run() (*driver.DB, error) {
 
 	flag.Parse()
 
-	if *dbName == "" || dbUser == "" {
+	if *dbName == "" || *dbUser == "" {
 		fmt.Println("Missing required flags")
 		os.Exit(1)
 	}
@@ -93,7 +93,7 @@ func run() (*driver.DB, error) {
 	log.Println("Connecting to database...")
 	connectionString := fmt.Sprintf(
 		"host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
-		*dbHost, *dbPort, *dbName, *dbUser, *dbPass, *dbSSL
+		*dbHost, *dbPort, *dbName, *dbUser, *dbPass, *dbSSL,
 	)
 	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
